@@ -3,8 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <link rel="icon" type="image/png" href="https://i.pinimg.com/1200x/77/cb/16/77cb1647176c1bfc4932dc0d82ce9437.jpg">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <title>Acharki - Developer Page</title>
+
+  <script>
+    (function () {
+      var appId = new URLSearchParams(window.location.search).get('app');
+      if (appId) document.documentElement.classList.add('game-host-mode');
+    }());
+  </script>
 
   <style>
     :root {
@@ -25,6 +32,59 @@
       margin: 0;
       background: var(--bg);
       color: var(--text);
+    }
+
+    .game-host {
+      display: none;
+    }
+
+    html.game-host-mode,
+    html.game-host-mode body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+    }
+
+    html.game-host-mode .developer-page {
+      display: none;
+    }
+
+    html.game-host-mode .game-host {
+      position: fixed;
+      inset: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+      background: #000;
+    }
+
+    .game-host-status {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      color: #fff;
+      background: #000;
+      font-size: 16px;
+      text-align: center;
+    }
+
+    .game-host-status[hidden] {
+      display: none;
+    }
+
+    .game-host-frame {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      display: block;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: #000;
     }
 
     .container {
@@ -147,7 +207,11 @@
 </head>
 
 <body>
-  <div class="container">
+  <main id="game-host" class="game-host" aria-label="Hosted game">
+    <div id="game-host-status" class="game-host-status">Opening game…</div>
+  </main>
+
+  <div class="container developer-page">
     <div class="header">
       <div class="dev-icon">
         <img src="https://i.pinimg.com/1200x/77/cb/16/77cb1647176c1bfc4932dc0d82ce9437.jpg" alt="Developer Icon">
@@ -233,5 +297,32 @@
 
     <footer>© 2026 Acharki • Developer Page</footer>
   </div>
+
+  <script>
+    (function () {
+      var rawAppId = new URLSearchParams(window.location.search).get('app');
+      if (!rawAppId) return;
+
+      var appId = rawAppId.trim();
+      var host = document.getElementById('game-host');
+      var status = document.getElementById('game-host-status');
+      if (!host || !status) return;
+
+      if (!/^\d{1,18}$/.test(appId)) {
+        status.textContent = 'Invalid game ID.';
+        return;
+      }
+
+      var frame = document.createElement('iframe');
+      frame.className = 'game-host-frame';
+      frame.src = '/dist-app/' + encodeURIComponent(appId);
+      frame.title = 'Playhop game ' + appId;
+      frame.allow = 'accelerometer; autoplay; clipboard-read; clipboard-write; encrypted-media; fullscreen; gamepad; gyroscope; web-share';
+      frame.setAttribute('allowfullscreen', '');
+      status.hidden = true;
+      host.appendChild(frame);
+      document.title = 'Game ' + appId;
+    }());
+  </script>
 </body>
 </html>
